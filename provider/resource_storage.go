@@ -55,7 +55,7 @@ func storageCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		return diag.FromErr(err)
 	}
 
-	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 	}
@@ -94,7 +94,7 @@ func storageRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 
@@ -114,8 +114,6 @@ func storageUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	name := d.Id()
 	billing_account_id := d.Get("billing_account_id").(int)
 
-	d.SetId(name)
-
 	if d.HasChange("billing_account_id") {
 		client := &http.Client{}
 		form := url.Values{}
@@ -134,7 +132,7 @@ func storageUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 			return diag.FromErr(err)
 		}
 
-		if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
+		if resp.StatusCode > 299 || resp.StatusCode < 200 {
 			bodyBytes, _ := io.ReadAll(resp.Body)
 			return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 		}
@@ -168,7 +166,7 @@ func storageDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 		return diag.FromErr(err)
 	}
 
-	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 	}
