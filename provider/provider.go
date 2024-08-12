@@ -1,23 +1,33 @@
-// provider.go
 package provider
 
 import (
 	"context"
-	"terraform-provider-idcloudhost/provider/resources"
+	// "terraform-provider-idcloudhost/provider/resources"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type Config struct {
+	ApiKey  string
+	BaseUrl string
+}
+
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"apikey": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"baseurl": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "https://api.idcloudhost.com",
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"example_server": resources.ResourceServer(),
+			"idcloudhost_s3": ResourceStorage(),
 		},
 		ConfigureContextFunc: contextConfig,
 	}
@@ -25,5 +35,10 @@ func Provider() *schema.Provider {
 
 func contextConfig(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
-	return nil, nil
+	config := &Config{
+		ApiKey:  rd.Get("apikey").(string),
+		BaseUrl: rd.Get("baseurl").(string),
+	}
+
+	return config, nil
 }
