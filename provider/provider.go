@@ -27,7 +27,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"idcloudhost_s3": ResourceStorage(),
+			"idcloudhost_s3":              ResourceStorage(),
+			"idcloudhost_private_network": ResourcePrivateNetwork(),
 		},
 		ConfigureContextFunc: contextConfig,
 	}
