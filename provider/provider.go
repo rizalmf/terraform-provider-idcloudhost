@@ -29,6 +29,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"idcloudhost_s3":              ResourceStorage(),
 			"idcloudhost_private_network": ResourcePrivateNetwork(),
+			"idcloudhost_float_ip":        ResourceFloatIp(),
 		},
 		ConfigureContextFunc: contextConfig,
 	}
