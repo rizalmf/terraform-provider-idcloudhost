@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -11,20 +12,21 @@ import (
 
 	"terraform-provider-idcloudhost/provider/schemas"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ResourceStorage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceStorageCreate,
-		Read:   resourceStorageRead,
-		Update: resourceStorageUpdate,
-		Delete: resourceStorageDelete,
-		Schema: schemas.StorageSchema,
+		CreateContext: storageCreate,
+		ReadContext:   storageRead,
+		UpdateContext: storageUpdate,
+		DeleteContext: storageDelete,
+		Schema:        schemas.StorageSchema,
 	}
 }
 
-func resourceStorageCreate(d *schema.ResourceData, m interface{}) error {
+func storageCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
@@ -34,8 +36,6 @@ func resourceStorageCreate(d *schema.ResourceData, m interface{}) error {
 	name := d.Get("name").(string)
 	billing_account_id := d.Get("billing_account_id").(int)
 
-	d.SetId(name)
-
 	client := &http.Client{}
 	form := url.Values{}
 	form.Add("name", name)
@@ -43,7 +43,7 @@ func resourceStorageCreate(d *schema.ResourceData, m interface{}) error {
 	req, err := http.NewRequest("PUT", fullUrl, strings.NewReader(form.Encode()))
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return diag.FromErr(err)
 	}
 	req.PostForm = form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -52,19 +52,21 @@ func resourceStorageCreate(d *schema.ResourceData, m interface{}) error {
 
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return diag.FromErr(err)
 	}
 
-	if resp.StatusCode >= 299 && resp.StatusCode <= 200 {
+	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf(string(bodyBytes))
+		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 	}
 	defer resp.Body.Close()
 
-	return resourceStorageRead(d, m)
+	d.SetId(name)
+
+	return storageRead(ctx, d, m)
 }
 
-func resourceStorageRead(d *schema.ResourceData, m interface{}) error {
+func storageRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
 	config := m.(*Config)
 	apiKey := config.ApiKey
@@ -74,7 +76,7 @@ func resourceStorageRead(d *schema.ResourceData, m interface{}) error {
 
 	fullUrl, err := url.Parse(baseUrl + path)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 
 	}
 
@@ -84,17 +86,17 @@ func resourceStorageRead(d *schema.ResourceData, m interface{}) error {
 	fullUrl.RawQuery = queryParams.Encode()
 	req, err := http.NewRequest("GET", fullUrl.String(), nil)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	req.Header.Set("apikey", apiKey)
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Fatal(err)
+		return diag.FromErr(err)
 	}
-	if resp.StatusCode >= 299 && resp.StatusCode <= 200 {
+	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf(string(bodyBytes))
+		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 
 	}
 	defer resp.Body.Close()
@@ -102,7 +104,7 @@ func resourceStorageRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceStorageUpdate(d *schema.ResourceData, m interface{}) error {
+func storageUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
@@ -121,8 +123,7 @@ func resourceStorageUpdate(d *schema.ResourceData, m interface{}) error {
 		form.Add("billing_account_id", strconv.Itoa(billing_account_id))
 		req, err := http.NewRequest("PATCH", fullUrl, strings.NewReader(form.Encode()))
 		if err != nil {
-			log.Fatal(err)
-			return err
+			return diag.FromErr(err)
 		}
 		req.PostForm = form
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -130,21 +131,20 @@ func resourceStorageUpdate(d *schema.ResourceData, m interface{}) error {
 		resp, err := client.Do(req)
 
 		if err != nil {
-			log.Fatal(err)
-			return err
+			return diag.FromErr(err)
 		}
 
-		if resp.StatusCode >= 299 && resp.StatusCode <= 200 {
+		if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
 			bodyBytes, _ := io.ReadAll(resp.Body)
-			return fmt.Errorf(string(bodyBytes))
+			return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 		}
 		defer resp.Body.Close()
 	}
 
-	return resourceStorageRead(d, m)
+	return storageRead(ctx, d, m)
 }
 
-func resourceStorageDelete(d *schema.ResourceData, m interface{}) error {
+func storageDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
@@ -157,8 +157,7 @@ func resourceStorageDelete(d *schema.ResourceData, m interface{}) error {
 	form.Add("name", name)
 	req, err := http.NewRequest("DELETE", fullUrl, strings.NewReader(form.Encode()))
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return diag.FromErr(err)
 	}
 	req.PostForm = form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -166,13 +165,12 @@ func resourceStorageDelete(d *schema.ResourceData, m interface{}) error {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return diag.FromErr(err)
 	}
 
-	if resp.StatusCode >= 299 && resp.StatusCode <= 200 {
+	if resp.StatusCode >= 299 || resp.StatusCode <= 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf(string(bodyBytes))
+		return diag.FromErr(fmt.Errorf(string(bodyBytes)))
 	}
 	defer resp.Body.Close()
 
