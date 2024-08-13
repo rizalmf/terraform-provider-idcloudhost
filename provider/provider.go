@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	// "terraform-provider-idcloudhost/provider/resources"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -30,6 +29,7 @@ func Provider() *schema.Provider {
 			"idcloudhost_s3":              ResourceStorage(),
 			"idcloudhost_private_network": ResourcePrivateNetwork(),
 			"idcloudhost_float_ip":        ResourceFloatIp(),
+			"idcloudhost_vm":              ResourceVm(),
 		},
 		ConfigureContextFunc: contextConfig,
 	}
