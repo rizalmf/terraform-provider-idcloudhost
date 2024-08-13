@@ -1,7 +1,5 @@
-# Unofficial Terraform Provider for IDCloudHost
-
-This is my personal idcloudhost terraform provider. It allows managing resources within compute and storage resources.
-
+# IDCloudHost Provider
+This is my personal idcloudhost terraform provider. It allows managing resources within compute and storage resources. 
 
 ## Example Usage
 
@@ -75,8 +73,3 @@ resource "idcloudhost_vm" "myvm" {
   float_ip_address = idcloudhost_float_ip.myfloatip.address
 }
 ```
-
-
-## Next Development
-- LB Network(Load Balancer)
-- Specific resource location
