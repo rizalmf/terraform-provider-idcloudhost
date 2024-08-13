@@ -72,6 +72,7 @@ func privateNetworkCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	d.SetId(uuid)
+	d.Set("network_uuid", uuid)
 
 	return privateNetworkRead(ctx, d, m)
 }

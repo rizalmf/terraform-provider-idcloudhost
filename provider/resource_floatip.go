@@ -74,6 +74,7 @@ func floatIpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	}
 
 	d.SetId(address)
+	d.Set("address", address)
 
 	return floatIpRead(ctx, d, m)
 }
