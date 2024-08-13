@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -224,36 +225,47 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 		oldAddr := oldIntrface.(string)
 		newAddr := newIntrface.(string)
 
-		// unassign old ip
-		path = fmt.Sprintf("v1/network/ip_addresses/%s/unassign", oldAddr)
-		fullUrl = baseUrl + path
-		client := &http.Client{}
-		req, err := http.NewRequest("POST", fullUrl, nil)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		req.Header.Set("apikey", apiKey)
-		resp, err := client.Do(req)
-
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		if resp.StatusCode > 299 || resp.StatusCode < 200 {
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			return diag.FromErr(fmt.Errorf(string(bodyBytes)))
-		}
-		defer resp.Body.Close()
-
-		if newAddr != "" {
-			// assign new address
-			path = fmt.Sprintf("v1/network/ip_addresses/%s/assign", newAddr)
+		if oldAddr != "" {
+			// unassign old ip
+			path = fmt.Sprintf("/v1/network/ip_addresses/%s/unassign", oldAddr)
 			fullUrl = baseUrl + path
 			client := &http.Client{}
 			req, err := http.NewRequest("POST", fullUrl, nil)
 			if err != nil {
 				return diag.FromErr(err)
 			}
+			req.Header.Set("apikey", apiKey)
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			if resp.StatusCode > 299 || resp.StatusCode < 200 {
+				bodyBytes, _ := io.ReadAll(resp.Body)
+				return diag.FromErr(fmt.Errorf(string(bodyBytes)))
+			}
+			defer resp.Body.Close()
+		}
+
+		if newAddr != "" {
+			// assign new address
+			data := map[string]interface{}{
+				"vm_uuid": uuid,
+			}
+
+			jsonData, err := json.Marshal(data)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			path = fmt.Sprintf("/v1/network/ip_addresses/%s/assign", newAddr)
+			fullUrl = baseUrl + path
+			client := &http.Client{}
+			req, err := http.NewRequest("POST", fullUrl, bytes.NewBuffer(jsonData))
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("apikey", apiKey)
 			resp, err := client.Do(req)
 
