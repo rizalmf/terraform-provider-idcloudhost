@@ -13,6 +13,10 @@ var PrivateNteworkSchema = map[string]*schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
 	},
+	"location": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
 }
 
 var FloatIpSchema = map[string]*schema.Schema{
@@ -27,5 +31,9 @@ var FloatIpSchema = map[string]*schema.Schema{
 	"address": {
 		Type:     schema.TypeString,
 		Computed: true,
+	},
+	"location": {
+		Type:     schema.TypeString,
+		Optional: true,
 	},
 }
