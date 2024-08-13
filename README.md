@@ -78,5 +78,5 @@ resource "idcloudhost_vm" "myvm" {
 
 
 ## Next Development
-- LB Network
+- LB Network(Load Balancer)
 - Specific resource location
