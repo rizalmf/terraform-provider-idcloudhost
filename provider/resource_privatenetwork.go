@@ -21,7 +21,63 @@ func ResourcePrivateNetwork() *schema.Resource {
 		UpdateContext: privateNetworkUpdate,
 		DeleteContext: privateNetworkDelete,
 		Schema:        schemas.PrivateNteworkSchema,
+		Importer: &schema.ResourceImporter{
+			State: privateNetworkState,
+		},
 	}
+}
+
+func privateNetworkState(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+
+	config := m.(*Config)
+	apiKey := config.ApiKey
+	baseUrl := config.BaseUrl
+	version := "/v1"
+	path := "/network/network/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
+	uuid := d.Id()
+
+	fullUrl, err := url.Parse(generatedUrl + uuid)
+	if err != nil {
+		return nil, err
+
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", fullUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("apikey", apiKey)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf(string(bodyBytes))
+
+	}
+	var result map[string]interface{}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	name, _ := result["name"].(string)
+	network_uuid, _ := result["network_uuid"].(string)
+
+	d.Set("name", name)
+	d.Set("network_uuid", network_uuid)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func privateNetworkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
