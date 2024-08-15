@@ -28,11 +28,17 @@ func privateNetworkCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/network"
+	version := "/v1"
+	path := "/network/network"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 
 	name := d.Get("name").(string)
 
-	fullUrl, err := url.Parse(baseUrl + path)
+	fullUrl, err := url.Parse(generatedUrl)
 	if err != nil {
 		return diag.FromErr(err)
 
@@ -82,10 +88,16 @@ func privateNetworkRead(ctx context.Context, d *schema.ResourceData, m interface
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/network/"
+	version := "/v1"
+	path := "/network/network/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 	uuid := d.Id()
 
-	fullUrl, err := url.Parse(baseUrl + path + uuid)
+	fullUrl, err := url.Parse(generatedUrl + uuid)
 	if err != nil {
 		return diag.FromErr(err)
 
@@ -116,9 +128,15 @@ func privateNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/network/"
+	version := "/v1"
+	path := "/network/network/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 	uuid := d.Id()
-	fullUrl := baseUrl + path + uuid
+	fullUrl := generatedUrl + uuid
 
 	if d.HasChange("name") {
 		data := map[string]interface{}{
@@ -157,9 +175,15 @@ func privateNetworkDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/network/"
+	version := "/v1"
+	path := "/network/network/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 	uuid := d.Id()
-	fullUrl := baseUrl + path + uuid
+	fullUrl := generatedUrl + uuid
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", fullUrl, nil)

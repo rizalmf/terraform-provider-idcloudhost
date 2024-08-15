@@ -36,6 +36,15 @@ resource "idcloudhost_s3" "mybucket" {
 resource "idcloudhost_private_network" "myprivatenetwork" {
   # network_uuid = <Computed>
   name = "mynetwork"
+
+  # (optional). if unset will use your user default location 
+  # you can not change location
+  location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
+  
+  lifecycle {
+    ignore_changes = [ location ]
+  }
+
 }
 
 # 5. Create Floating IP
@@ -46,6 +55,15 @@ resource "idcloudhost_float_ip" "myfloatip" {
   # address = <Computed>
   name = "myfloatnetwork"
   billing_account_id = 000000
+
+  # (optional). if unset will use your user default location 
+  # you can not change location
+  location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
+  
+  lifecycle {
+    ignore_changes = [ location ]
+  }
+
 }
 
 # 6. Create vm
@@ -73,6 +91,18 @@ resource "idcloudhost_vm" "myvm" {
   
   # (optional) assign to floating ip network. if not, vm doesnt have public ip
   float_ip_address = idcloudhost_float_ip.myfloatip.address
+
+  # add plan will ignored. changing vcpu & ram require desired_status = "stopped"
+  desired_status = "stopped" # "stopped", "running"
+  
+  # (optional). if unset will use your user default location 
+  # you can not change location
+  location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
+  
+  lifecycle {
+    ignore_changes = [ location, os_name, os_version, username, password, billing_account_id ]
+  }
+
 }
 ```
 

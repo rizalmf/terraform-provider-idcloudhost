@@ -28,8 +28,13 @@ func floatIpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/ip_addresses"
-	fullUrl := baseUrl + path
+	version := "/v1"
+	path := "/network/ip_addresses"
+	fullUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		fullUrl = baseUrl + version + "/" + location + path
+	}
 
 	name := d.Get("name").(string)
 	billing_account_id := d.Get("billing_account_id").(int)
@@ -84,10 +89,16 @@ func floatIpRead(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/ip_addresses/"
 	address := d.Id()
+	version := "/v1"
+	path := "/network/ip_addresses/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 
-	fullUrl, err := url.Parse(baseUrl + path + address)
+	fullUrl, err := url.Parse(generatedUrl + address)
 	if err != nil {
 		return diag.FromErr(err)
 
@@ -118,9 +129,15 @@ func floatIpUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/ip_addresses/"
 	address := d.Id()
-	fullUrl := baseUrl + path + address
+	version := "/v1"
+	path := "/network/ip_addresses/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
+	fullUrl := generatedUrl + address
 
 	if d.HasChanges("name", "billing_account_id") {
 		data := map[string]interface{}{
@@ -160,9 +177,15 @@ func floatIpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) d
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/network/ip_addresses/"
 	address := d.Id()
-	fullUrl := baseUrl + path + address
+	version := "/v1"
+	path := "/network/ip_addresses/"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
+	fullUrl := generatedUrl + address
 
 	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", fullUrl, nil)
