@@ -163,7 +163,12 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	ram := d.Get("ram").(int)
 	vcpu := d.Get("vcpu").(int)
 	disks := d.Get("disks").(int)
+	// desired_status := d.Get("desired_status").(string)
 	// float_ip_address := d.Get("float_ip_address").(string)
+
+	if d.HasChange("desired_status") {
+
+	}
 
 	if d.HasChanges("name", "ram", "vcpu") {
 		client := &http.Client{}

@@ -61,4 +61,8 @@ var VmSchema = map[string]*schema.Schema{
 		Type:     schema.TypeString,
 		Optional: true,
 	},
+	"desired_status": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
 }
