@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	ApiKey  string
-	BaseUrl string
+	ApiKey          string
+	BaseUrl         string
+	DefaultLocation string
 }
 
 func Provider() *schema.Provider {
@@ -23,6 +24,11 @@ func Provider() *schema.Provider {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "https://api.idcloudhost.com",
+			},
+			"default_location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -38,8 +44,9 @@ func Provider() *schema.Provider {
 func contextConfig(ctx context.Context, rd *schema.ResourceData) (interface{}, diag.Diagnostics) {
 
 	config := &Config{
-		ApiKey:  rd.Get("apikey").(string),
-		BaseUrl: rd.Get("baseurl").(string),
+		ApiKey:          rd.Get("apikey").(string),
+		BaseUrl:         rd.Get("baseurl").(string),
+		DefaultLocation: rd.Get("default_location").(string),
 	}
 
 	return config, nil
