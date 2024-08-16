@@ -24,16 +24,62 @@ func ResourceVm() *schema.Resource {
 		UpdateContext: vmUpdate,
 		DeleteContext: vmDelete,
 		Schema:        schemas.VmSchema,
+		Importer: &schema.ResourceImporter{
+			State: vmState,
+		},
 	}
 }
-
-func vmCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func vmState(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
 	path := "/v1/user-resource/vm"
-	fullUrl := baseUrl + path
+	uuid := d.Id()
+
+	fullUrl, err := url.Parse(baseUrl + path)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	queryParams := url.Values{}
+	queryParams.Add("uuid", uuid)
+	fullUrl.RawQuery = queryParams.Encode()
+	req, err := http.NewRequest("GET", fullUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("apikey", apiKey)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf(string(bodyBytes))
+
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
+func vmCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
+	config := m.(*Config)
+	apiKey := config.ApiKey
+	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
+	path := "/user-resource/vm"
+	version := "/v1"
+	fullUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		fullUrl = baseUrl + version + "/" + defaultLocation + path
+	}
+	if location != "" {
+		fullUrl = baseUrl + version + "/" + location + path
+	}
 
 	name := d.Get("name").(string)
 	billing_account_id := d.Get("billing_account_id").(int)
@@ -117,10 +163,20 @@ func vmRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Dia
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/user-resource/vm"
+	defaultLocation := config.DefaultLocation
+	path := "/user-resource/vm"
+	version := "/v1"
+	generatedUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
+	}
+	if location != "" {
+		generatedUrl = baseUrl + version + "/" + location + path
+	}
 	uuid := d.Id()
 
-	fullUrl, err := url.Parse(baseUrl + path)
+	fullUrl, err := url.Parse(generatedUrl)
 	if err != nil {
 		return diag.FromErr(err)
 
@@ -292,8 +348,17 @@ func vmDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	path := "/v1/user-resource/vm"
-	fullUrl := baseUrl + path
+	defaultLocation := config.DefaultLocation
+	path := "/user-resource/vm"
+	version := "/v1"
+	fullUrl := baseUrl + version + path
+	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		fullUrl = baseUrl + version + "/" + defaultLocation + path
+	}
+	if location != "" {
+		fullUrl = baseUrl + version + "/" + location + path
+	}
 
 	uuid := d.Id()
 	client := &http.Client{}
