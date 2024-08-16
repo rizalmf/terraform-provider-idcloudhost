@@ -27,17 +27,18 @@ func ResourcePrivateNetwork() *schema.Resource {
 	}
 }
 
+// only accept location from provider config
 func privateNetworkState(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
 	version := "/v1"
 	path := "/network/network/"
 	generatedUrl := baseUrl + version + path
-	location := d.Get("location").(string)
-	if location != "" {
-		generatedUrl = baseUrl + version + "/" + location + path
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
 	}
 	uuid := d.Id()
 
@@ -75,7 +76,8 @@ func privateNetworkState(d *schema.ResourceData, m interface{}) ([]*schema.Resou
 	network_uuid, _ := result["network_uuid"].(string)
 
 	d.Set("name", name)
-	d.Set("network_uuid", network_uuid)
+	d.Set("uuid", network_uuid)
+	d.Set("location", defaultLocation)
 
 	return []*schema.ResourceData{d}, nil
 }
@@ -84,10 +86,14 @@ func privateNetworkCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
 	version := "/v1"
 	path := "/network/network"
 	generatedUrl := baseUrl + version + path
 	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
+	}
 	if location != "" {
 		generatedUrl = baseUrl + version + "/" + location + path
 	}
@@ -144,10 +150,14 @@ func privateNetworkRead(ctx context.Context, d *schema.ResourceData, m interface
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
 	version := "/v1"
 	path := "/network/network/"
 	generatedUrl := baseUrl + version + path
 	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
+	}
 	if location != "" {
 		generatedUrl = baseUrl + version + "/" + location + path
 	}
@@ -184,10 +194,14 @@ func privateNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
 	version := "/v1"
 	path := "/network/network/"
 	generatedUrl := baseUrl + version + path
 	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
+	}
 	if location != "" {
 		generatedUrl = baseUrl + version + "/" + location + path
 	}
@@ -231,10 +245,14 @@ func privateNetworkDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
+	defaultLocation := config.DefaultLocation
 	version := "/v1"
 	path := "/network/network/"
 	generatedUrl := baseUrl + version + path
 	location := d.Get("location").(string)
+	if defaultLocation != "" {
+		generatedUrl = baseUrl + version + "/" + defaultLocation + path
+	}
 	if location != "" {
 		generatedUrl = baseUrl + version + "/" + location + path
 	}
