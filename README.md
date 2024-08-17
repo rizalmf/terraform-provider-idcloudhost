@@ -4,41 +4,52 @@ This is my personal idcloudhost terraform provider. It allows managing resources
 
 
 ## Example Usage
-
+### 1. Load providers
 ```hcl
-# 1. Load providers
 terraform {
   required_providers {
     idcloudhost = {
       source = "rizalmf/idcloudhost"
-      version = "=1.0.0"
+      version = "~> 1.0.0"
     }
   }
 }
+```
 
-# 2. Configure the idcloudhost provider
+### 2. Configure the idcloudhost provider
+```hcl
 provider "idcloudhost" {
   # you can obtain by create new access as API Token on idcloudhost dashboard
   apikey="XXXXXXXXXXXXXXXXX"
-}
 
-# 3. Create s3 bucket storage
+  ## optional. if unset will use your user default location 
+  default_location="jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
+}
+```
+
+### 3. Create s3 bucket storage
+```hcl
 # changable field:
+# id = STORAGE NAME
 # - billing_account_id
 resource "idcloudhost_s3" "mybucket" {
   name = "mybucket"
   billing_account_id = 000000
 }
+```
 
-# 4. Create a VPC network
+### 4. Create a VPC network
+```hcl
 # changable field:
+# id = PRIVATE NETWORK UUID
 # - name
 resource "idcloudhost_private_network" "myprivatenetwork" {
   # network_uuid = <Computed>
   name = "mynetwork"
 
   # (optional). if unset will use your user default location 
-  # you can not change location
+  # this field overwrite "default_location"
+  # you can not change location on update
   location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
   
   lifecycle {
@@ -46,9 +57,12 @@ resource "idcloudhost_private_network" "myprivatenetwork" {
   }
 
 }
+```
 
-# 5. Create Floating IP
+### 5. Create Floating IP
+```hcl
 # changable field:
+# id = FLOAT IP ADDRESS
 # - name
 # - billing_account_id
 resource "idcloudhost_float_ip" "myfloatip" {
@@ -57,7 +71,8 @@ resource "idcloudhost_float_ip" "myfloatip" {
   billing_account_id = 000000
 
   # (optional). if unset will use your user default location 
-  # you can not change location
+  # this field overwrite "default_location"
+  # you can not change location on update
   location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
   
   lifecycle {
@@ -65,9 +80,12 @@ resource "idcloudhost_float_ip" "myfloatip" {
   }
 
 }
+```
 
-# 6. Create vm
+### 6. Create vm
+```hcl
 # changable field:
+# id = VM UUID
 # - name
 # - ram
 # - vcpu
@@ -79,9 +97,9 @@ resource "idcloudhost_vm" "myvm" {
   name = "myvm"
   billing_account_id = 000000
   username = "myusername"
-  password = "mypassword"
+  password = "Mypassword1"
   os_name = "ubuntu"
-  os_version = "22.04"
+  os_version = "22.04-lts"
   vcpu = 2
   ram = 2048 #mb
   disks = 20 #gb
@@ -91,12 +109,10 @@ resource "idcloudhost_vm" "myvm" {
   
   # (optional) assign to floating ip network. if not, vm doesnt have public ip
   float_ip_address = idcloudhost_float_ip.myfloatip.address
-
-  # add plan will ignored. changing vcpu & ram require desired_status = "stopped"
-  desired_status = "stopped" # "stopped", "running"
   
   # (optional). if unset will use your user default location 
-  # you can not change location
+  # this field overwrite "default_location"
+  # you can not change location on update
   location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
   
   lifecycle {
@@ -108,5 +124,13 @@ resource "idcloudhost_vm" "myvm" {
 
 
 ## Next Development
-- LB Network(Load Balancer)
-- Specific resource location
+- Resource LB Network(Load Balancer)
+- Resource VM add desired_status
+- ✅ Specific resource location (v1.1.0)
+- ✅ Support terraform import (v1.1.0)
+- ✅ Docs (v1.0.6)
+- ✅ Github Action workflow (1.0.5)
+- ✅ Resource Float IP (v1.0.4)
+- ✅ Resource VM (v1.0.3)
+- ✅ Resource Private Network (v1.0.3)
+- ✅ Resource S3 (v1.0.3)
