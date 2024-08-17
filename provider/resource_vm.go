@@ -378,19 +378,11 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	config := m.(*Config)
 	apiKey := config.ApiKey
 	baseUrl := config.BaseUrl
-	// path := "/v1/user-resource/vm"
 	defaultLocation := config.DefaultLocation
 	path := "/user-resource/vm"
 	version := "/v1"
 	fullUrl := baseUrl + version + path
 	location := d.Get("location").(string)
-	if defaultLocation != "" {
-		fullUrl = baseUrl + version + "/" + defaultLocation + path
-	}
-	if location != "" {
-		fullUrl = baseUrl + version + "/" + location + path
-	}
-	// fullUrl := baseUrl + path
 
 	uuid := d.Id()
 	disks_uuid := d.Get("disks_uuid").(string)
@@ -398,14 +390,66 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.D
 	ram := d.Get("ram").(int)
 	vcpu := d.Get("vcpu").(int)
 	disks := d.Get("disks").(int)
-	// desired_status := d.Get("desired_status").(string)
-	// float_ip_address := d.Get("float_ip_address").(string)
+	desired_status := d.Get("desired_status").(string)
 
 	if d.HasChange("desired_status") {
+		unregisteredStatus := true
+		statusPath := "start"
+		if desired_status == "stopped" {
+			unregisteredStatus = false
+			statusPath = "stop"
+		}
 
+		if desired_status == "running" {
+			unregisteredStatus = false
+		}
+		if desired_status != "" && unregisteredStatus {
+			return diag.FromErr(fmt.Errorf("unregistered desired_status"))
+		}
+		if !unregisteredStatus {
+			version = "/v1"
+			path = "/user-resource/vm/" + statusPath
+			fullUrl = baseUrl + version + path
+			if defaultLocation != "" {
+				fullUrl = baseUrl + version + "/" + defaultLocation + path
+			}
+			if location != "" {
+				fullUrl = baseUrl + version + "/" + location + path
+			}
+			client := &http.Client{}
+			form := url.Values{}
+			form.Add("uuid", uuid)
+			req, err := http.NewRequest("POST", fullUrl, strings.NewReader(form.Encode()))
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			req.PostForm = form
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("apikey", apiKey)
+			resp, err := client.Do(req)
+
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			if resp.StatusCode > 299 || resp.StatusCode < 200 {
+				bodyBytes, _ := io.ReadAll(resp.Body)
+				return diag.FromErr(fmt.Errorf(string(bodyBytes)))
+			}
+			defer resp.Body.Close()
+		}
 	}
 
 	if d.HasChanges("name", "ram", "vcpu") {
+		path = "/user-resource/vm"
+		version = "/v1"
+		fullUrl = baseUrl + version + path
+		if defaultLocation != "" {
+			fullUrl = baseUrl + version + "/" + defaultLocation + path
+		}
+		if location != "" {
+			fullUrl = baseUrl + version + "/" + location + path
+		}
 		client := &http.Client{}
 		form := url.Values{}
 		form.Add("uuid", uuid)

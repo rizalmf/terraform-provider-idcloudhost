@@ -109,6 +109,9 @@ resource "idcloudhost_vm" "myvm" {
   
   # (optional) assign to floating ip network. if not, vm doesnt have public ip
   float_ip_address = idcloudhost_float_ip.myfloatip.address
+
+  # add plan will ignored. changing vcpu & ram require desired_status = "stopped"
+  desired_status = "stopped" # "stopped", "running"
   
   # (optional). if unset will use your user default location 
   # this field overwrite "default_location"
@@ -125,7 +128,7 @@ resource "idcloudhost_vm" "myvm" {
 
 ## Next Development
 - Resource LB Network(Load Balancer)
-- Resource VM add desired_status
+- ✅ Resource VM add desired_status (v1.2.0)
 - ✅ Specific resource location (v1.1.0)
 - ✅ Support terraform import (v1.1.0)
 - ✅ Docs (v1.0.6)
