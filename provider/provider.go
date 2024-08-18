@@ -36,6 +36,7 @@ func Provider() *schema.Provider {
 			"idcloudhost_private_network": ResourcePrivateNetwork(),
 			"idcloudhost_float_ip":        ResourceFloatIp(),
 			"idcloudhost_vm":              ResourceVm(),
+			"idcloudhost_loadbalancer":    ResourceLoadBalancer(),
 		},
 		ConfigureContextFunc: contextConfig,
 	}

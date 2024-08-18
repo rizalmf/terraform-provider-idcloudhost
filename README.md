@@ -10,7 +10,7 @@ terraform {
   required_providers {
     idcloudhost = {
       source = "rizalmf/idcloudhost"
-      version = "~> 1.0.0"
+      version = "~> 1.2.0"
     }
   }
 }
@@ -29,8 +29,8 @@ provider "idcloudhost" {
 
 ### 3. Create s3 bucket storage
 ```hcl
-# changable field:
 # id = STORAGE NAME
+# changable field:
 # - billing_account_id
 resource "idcloudhost_s3" "mybucket" {
   name = "mybucket"
@@ -40,8 +40,8 @@ resource "idcloudhost_s3" "mybucket" {
 
 ### 4. Create a VPC network
 ```hcl
-# changable field:
 # id = PRIVATE NETWORK UUID
+# changable field:
 # - name
 resource "idcloudhost_private_network" "myprivatenetwork" {
   # network_uuid = <Computed>
@@ -61,8 +61,8 @@ resource "idcloudhost_private_network" "myprivatenetwork" {
 
 ### 5. Create Floating IP
 ```hcl
-# changable field:
 # id = FLOAT IP ADDRESS
+# changable field:
 # - name
 # - billing_account_id
 resource "idcloudhost_float_ip" "myfloatip" {
@@ -82,15 +82,16 @@ resource "idcloudhost_float_ip" "myfloatip" {
 }
 ```
 
-### 6. Create vm
+### 6. Create Vm
 ```hcl
-# changable field:
 # id = VM UUID
+# changable field:
 # - name
 # - ram
 # - vcpu
 # - disks
 # - float_ip_address
+# - desired_status
 resource "idcloudhost_vm" "myvm" {
   # uuid = <Computed>
   # disks_uuid = <Computed>
@@ -125,6 +126,66 @@ resource "idcloudhost_vm" "myvm" {
 }
 ```
 
+### 7. Create Load Balancer (Vms target only)
+```hcl
+# prepare a local values
+locals {
+  # forwarding rules
+  lb_rules = [
+    { source_port = 8080, target_port=80 }
+  ]
+
+  # target servers
+  lb_targets = [
+    { uuid="XXXX-XXXXXXX-XXXXXXX-XXXXXX" }, # uuid of vm1
+    { uuid="XXXX-XXXXXXX-XXXXXXX-XXXXXX" }, # uuid of vm2
+    { uuid="XXXX-XXXXXXX-XXXXXXX-XXXXXX" }, # uuid of vm3
+  ]
+}
+
+# id = UUID
+# changable field:
+# - name
+# - billing_account_id
+# - targets
+# - rules
+resource "idcloudhost_loadbalancer" "mylb" {
+  # uuid = <Computed>
+  name = "myloadbalancer"
+  billing_account_id = 000000
+  # bind existing private network
+  private_network_uuid = idcloudhost_private_network.myprivatenetwork.network_uuid
+
+  # (optional) assign to floating ip network. if not, lb doesnt have public ip
+  float_ip_address = idcloudhost_float_ip.anotherfloatip.address
+
+  # (optional). if unset will use your user default location 
+  # this field overwrite "default_location"
+  # you can not change location on update
+  location = "jkt01" # jkt01(SouthJKT-a), jkt02(NorthJKT-a), jkt03(WestJKT-a), sgp01(Singapore)
+
+  dynamic "rules" {
+    for_each = locals.lb_rules
+    content {
+      source_port = rules.value.source_port
+      target_port = rules.value.target_port
+    }
+  }
+
+  dynamic "targets" {
+    for_each = locals.lb_targets
+    content {
+      target_uuid = targets.value.target_uuid
+      target_type = targets.value.target_type
+    }
+  }
+  
+  lifecycle {
+    ignore_changes = [ location, private_network_uuid ]
+  }
+
+}
+```
 
 ## Next Development
 - Resource LB Network(Load Balancer)

@@ -27,8 +27,8 @@ provider "idcloudhost" {
 
 ### 3. Create s3 bucket storage
 ```hcl
-# changable field:
 # id = STORAGE NAME
+# changable field:
 # - billing_account_id
 resource "idcloudhost_s3" "mybucket" {
   name = "mybucket"
@@ -38,8 +38,8 @@ resource "idcloudhost_s3" "mybucket" {
 
 ### 4. Create a VPC network
 ```hcl
-# changable field:
 # id = PRIVATE NETWORK UUID
+# changable field:
 # - name
 resource "idcloudhost_private_network" "myprivatenetwork" {
   # network_uuid = <Computed>
@@ -59,8 +59,8 @@ resource "idcloudhost_private_network" "myprivatenetwork" {
 
 ### 5. Create Floating IP
 ```hcl
-# changable field:
 # id = FLOAT IP ADDRESS
+# changable field:
 # - name
 # - billing_account_id
 resource "idcloudhost_float_ip" "myfloatip" {
@@ -80,10 +80,10 @@ resource "idcloudhost_float_ip" "myfloatip" {
 }
 ```
 
-### 6. Create vm
+### 6. Create Vm
 ```hcl
-# changable field:
 # id = VM UUID
+# changable field:
 # - name
 # - ram
 # - vcpu
